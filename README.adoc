@@ -45,7 +45,7 @@ The necessary extension:
 - RESTeasy JAX-R
 - RESTeasy JSON-B
 
-To make sure the development environment works, you start the development mode:
+To make sure the development environment works, you start the development mode with Maven:
 ----
 mvn compile quarkus:dev
 ----
@@ -89,4 +89,31 @@ It will be necessary get the latest stock price through a REST service, so we ad
 
 We can test this by accessing this URL: http://localhost:8080/stocks/AAPL/latestPrice
 
-=== Angular front-end
+== Angular front-end
+To bootstrap the Angular application, run this in the src/main directory:
+----
+ng new portfolio --skipGit --routing=true --style=scss
+----
+
+This creates a new directory "portfolio" with the Angular code. I rename that to "angular" to make it obvious that it contains Angular
+front-end code.
+
+To run the front-end, change directory to the src/main/angular directory and run `ng serve`. When you enter "http://localhost:4200" in
+your browser, you will see the example page with "portfolio app is running".
+
+I add the PrimeNG package - this contains nice user interface components.
+----
+npm install --save primeng
+npm install --save primeicons
+npm install --save @angular/cdk
+npm install --save chart.js
+npm install --save @fullcalendar/core
+----
+
+=== Portfolio page
+Next I create a Portfolio page to display the list of stocks, and the service to retrieve the latest price.
+----
+ng generate component Portfolio
+ng generate service Stock
+----
+
