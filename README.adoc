@@ -152,3 +152,133 @@ docker run -i --rm -p 8080:80 quarkus/portfolio
 After that, you can access the application at http://localhost:8080/index.html
 
 See the Github repository at: https://github.com/koert/portfolio1
+
+
+= Deployment on Amazon Web Services
+In my previous article I have setup an Angular application with a Quarkus backend and produced a Docker image. You can deploy this image
+directly with Docker, or run on a Kubernetes cluster. To evaluate how easy it is to deploy this image at AWS, I started looking at
+https://console.aws.amazon.com/ecs/home?region=us-east-1#/getStarted[Amazon Elastic Container Service (AWS ECS)].
+
+After registering and installing command line tools.
+
+.Setting up security policy
+----
+aws iam --region eu-west-1 create-role --role-name ecsTaskExecutionRole --assume-role-policy-document file://config/task-execution-assume-role.json
+
+aws iam --region eu-west-1 attach-role-policy --role-name ecsTaskExecutionRole --policy-arn arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+----
+
+.Configure a cluster
+----
+ecs-cli configure --cluster portfolio --default-launch-type FARGATE --config-name portfolio --region eu-west-1
+----
+
+You have to setup an Administrator user in IAM and create an access key.
+.Configure profile
+----
+ecs-cli configure profile --access-key <ACCESS_KEY> --secret-key <SECRET_KEY> --profile-name portfolio-profile
+----
+
+.Create the cluster
+----
+ecs-cli up --cluster-config portfolio --ecs-profile portfolio-profile
+----
+
+.Output
+----
+#INFO[0000] Created cluster                               cluster=portfolio region=eu-west-1
+#INFO[0000] Waiting for your cluster resources to be created...
+#INFO[0000] Cloudformation stack status                   stackStatus=CREATE_IN_PROGRESS
+#INFO[0061] Cloudformation stack status                   stackStatus=CREATE_IN_PROGRESS
+#VPC created: vpc-01234567890
+#Subnet created: subnet-01231231231223123
+#Subnet created: subnet-02342342342342344
+#Cluster creation succeeded.
+----
+
+.Find group ID
+----
+aws ec2 describe-security-groups --filters Name=vpc-id,Values=vpc-01234567890 --region eu-west-1
+----
+
+.Output
+----
+#  "OwnerId": "091823891238",
+#  "GroupId": "sg-01231231231231233",
+----
+
+.Authorize ports
+----
+aws ec2 authorize-security-group-ingress --group-id sg-01231231231231233 --protocol tcp --port 80 --cidr 0.0.0.0/0 --region eu-west-1
+aws ec2 authorize-security-group-ingress --group-id sg-01231231231231233 --protocol tcp --port 8080 --cidr 0.0.0.0/0 --region eu-west-1
+----
+
+.Bring the cluster up
+----
+ecs-cli compose --project-name portfolio service up --create-log-groups --cluster-config portfolio --ecs-profile portfolio-profile
+----
+
+.Output
+----
+#INFO[0000] Using ECS task definition                     TaskDefinition="portfolio:3"
+#WARN[0000] Failed to create log group portfolio in eu-west-1: The specified log group already exists
+#INFO[0000] Created an ECS service                        service=portfolio taskDefinition="portfolio:3"
+#INFO[0001] Updated ECS service successfully              desiredCount=1 force-deployment=false service=portfolio
+#INFO[0016] (service portfolio) has started 1 tasks: (task b0161234-bde5-44c1-1234-3d66caab1233).  timestamp="2020-02-06 14:07:16 +0000 UTC"
+#INFO[0046] Service status                                desiredCount=1 runningCount=1 serviceName=portfolio
+#INFO[0046] ECS Service has reached a stable state        desiredCount=1 runningCount=1 serviceName=portfolio
+----
+
+.Find out IP address
+----
+ecs-cli compose --project-name portfolio service ps --cluster-config portfolio --ecs-profile portfolio-profile
+----
+
+.Output
+----
+#Name                                      State    Ports                         TaskDefinition   Health
+#b0161234-bde5-44c1-1234-3d66caab1233/web  RUNNING  163.135.225.218:8080->8080/tcp  portfolio:3  UNKNOWN
+----
+
+.Examine the logs
+----
+ecs-cli logs --task-id b0161234-bde5-44c1-1234-3d66caab1233 --follow --cluster-config portfolio --ecs-profile portfolio-profile
+----
+
+.Scaling - use 2 containers
+----
+ecs-cli compose --project-name portfolio service scale 2 --cluster-config portfolio --ecs-profile portfolio-profile
+----
+
+.Find out scaled up containers and IP addresses
+----
+ecs-cli compose --project-name portfolio service ps --cluster-config portfolio --ecs-profile portfolio-profile
+----
+
+.Clean up
+----
+ecs-cli compose --project-name portfolio service down --cluster-config portfolio --ecs-profile portfolio-profile
+----
+
+.Output
+----
+#INFO[0000] Updated ECS service successfully              desiredCount=0 force-deployment=false service=portfolio
+#INFO[0000] Service status                                desiredCount=0 runningCount=1 serviceName=portfolio
+#INFO[0015] Service status                                desiredCount=0 runningCount=0 serviceName=portfolio
+#INFO[0015] (service portfolio) has stopped 1 running tasks: (task b0161234-bde5-44c1-1234-3d66caab1233).  timestamp="2020-02-06 10:56:53 +0000 UTC"
+#INFO[0015] ECS Service has reached a stable state        desiredCount=0 runningCount=0 serviceName=portfolio
+#INFO[0015] Deleted ECS service                           service=portfolio
+#INFO[0015] ECS Service has reached a stable state        desiredCount=0 runningCount=0 serviceName=portfolio
+----
+
+.Delete cluster
+----
+ecs-cli down --force --cluster-config portfolio --ecs-profile portfolio-profile
+----
+
+== Update new deployment
+
+.Update image
+----
+aws ecs update-service --service portfolio --cluster portfolio --force-new-deployment
+----
