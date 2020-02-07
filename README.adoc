@@ -117,3 +117,63 @@ ng generate component Portfolio
 ng generate service Stock
 ----
 
+You can see how I implemented the page on https://github.com/koert/portfolio1[my Github repository].
+
+=== Stock price service
+To retrieve the latest stock price, the StockService calls the REST endpoint implemented in Quarkus.
+
+----
+  getStockLatestPrice(symbol: string): Observable<StockLatestPriceResponse> {
+    return this.http.get<StockLatestPriceResponse>(`/stocks/${symbol}/latestPrice`);
+  }
+----
+
+To check if it works, you can run `ng serve` again.
+
+You will see errors in the browser console:
+----
+GET http://localhost:4200/stocks/AAPL/latestPrice 404 (Not Found)
+GET http://localhost:4200/stocks/GOOG/latestPrice 404 (Not Found)
+----
+
+The Angular service expects that the Quarkus service is available at the same URL prefix, and this is http://localhost:4200. The Quarkus
+service actually lives at http://localhost:8080, so will will need a proxy.
+
+.proxy.conf.json
+----
+{
+  "/stocks": {
+    "target": "http://localhost:8080",
+    "secure": false
+  }
+}
+----
+
+If you have started Quarkus with `mvn compile quarkus:dev`, then you can start the Angular app with `ng serve --proxy-config proxy.conf.json`.
+
+== Combine Quarkus and Angular
+So far, the Quarkus service and Angular application are separated. The Angular production build with `ng build --prod` produces static files
+that can be served by Quarkus.
+
+By default, `ng build --prod` puts all produced files in the dist directory. We want those files in the src/main/resources/META-INF/resources
+directory. You can change that in the angular.json file:
+
+.angular.json
+----
+  "configurations": {
+    "production": {
+      "outputPath": "../resources/META-INF/resources",
+----
+
+After running `ng build --prod`, you can start Quarkus with `mvn compile quarkus:dev` and load the Angular app with http://localhost:8080
+
+== Running the application
+Now we have an application that we can deploy and run. Quarkus gives you the ability to run the application as a native executable.
+When you build the application with `mvn package -Pnative -Dquarkus.native.container-build=true -Dmaven.test.skip`, it will build a
+runner executable that contains everything it needs. This executable starts up very quickly and is great for running in a Docker container.
+
+After building the executable, you can build a Docker image and run it:
+----
+docker build -f src/main/docker/Dockerfile.native -t quarkus/portfolio .
+docker run -i --rm -p 8080:8080 quarkus/portfolio
+----

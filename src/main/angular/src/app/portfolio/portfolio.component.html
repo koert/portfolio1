@@ -1,51 +1,53 @@
-<h1>Portfolio</h1>
-<p-table [value]="portfolioRows" dataKey="rowIndex" [tableStyle]="{'table-layout': 'auto', 'width': 'auto'}">
-  <ng-template pTemplate="header">
-    <tr>
-      <th colspan="2">Stock</th>
-      <th colspan="3">Bought</th>
-      <th colspan="2">Latest</th>
-    </tr>
-    <tr>
-      <th pSortableColumn="symbol">
-        Symbol
-        <p-sortIcon field="symbol" ariaLabel="Activate to sort" ariaLabelDesc="Activate to sort in descending order" ariaLabelAsc="Activate to sort in ascending order"></p-sortIcon>
-      </th>
-      <th pSortableColumn="name">
-        Name
-        <p-sortIcon field="name" ariaLabel="Activate to sort" ariaLabelDesc="Activate to sort in descending order" ariaLabelAsc="Activate to sort in ascending order"></p-sortIcon>
-      </th>
-      <th pSortableColumn="amount">
-        Amount
-        <p-sortIcon field="amount" ariaLabel="Activate to sort" ariaLabelDesc="Activate to sort in descending order" ariaLabelAsc="Activate to sort in ascending order"></p-sortIcon>
-      </th>
-      <th pSortableColumn="buyPrice">
-        Price
-        <p-sortIcon field="buyPrice" ariaLabel="Activate to sort" ariaLabelDesc="Activate to sort in descending order" ariaLabelAsc="Activate to sort in ascending order"></p-sortIcon>
-      </th>
-      <th pSortableColumn="buyValue">
-        Value
-        <p-sortIcon field="buyValue" ariaLabel="Activate to sort" ariaLabelDesc="Activate to sort in descending order" ariaLabelAsc="Activate to sort in ascending order"></p-sortIcon>
-      </th>
-      <th pSortableColumn="latestPrice">
-        Price
-        <p-sortIcon field="latestPrice" ariaLabel="Activate to sort" ariaLabelDesc="Activate to sort in descending order" ariaLabelAsc="Activate to sort in ascending order"></p-sortIcon>
-      </th>
-      <th pSortableColumn="latestValue">
-        Value
-        <p-sortIcon field="latestValue" ariaLabel="Activate to sort" ariaLabelDesc="Activate to sort in descending order" ariaLabelAsc="Activate to sort in ascending order"></p-sortIcon>
-      </th>
-    </tr>
-  </ng-template>
-  <ng-template pTemplate="body" let-row let-rowData>
-    <tr>
-      <td>{{row.symbol}}</td>
-      <td><span>{{row.name}}</span></td>
-      <td class="amount">{{row.amount}}</td>
-      <td class="price">{{row.buyPrice | currency : row.currency}}</td>
-      <td class="price">{{row.buyValue | currency : row.currency}}</td>
-      <td class="price"><span>{{row.latestPrice | currency : row.currency}}</span></td>
-      <td class="price">{{row.latestValue | currency : row.currency}}</td>
-    </tr>
-  </ng-template>
-</p-table>
+<p-panel header="Portfolio">
+  <p-button label="Refresh prices" icon="pi pi-download" (onClick)="refreshPortfolioPrices()"></p-button>
+  <p-table [value]="portfolioRows" dataKey="rowIndex" [tableStyle]="{'table-layout': 'auto', 'width': 'auto'}">
+    <ng-template pTemplate="header">
+      <tr>
+        <th colspan="2">Stock</th>
+        <th colspan="3">Bought</th>
+        <th colspan="2">Latest</th>
+      </tr>
+      <tr>
+        <th pSortableColumn="symbol">
+          Symbol
+          <p-sortIcon field="symbol" ariaLabel="Activate to sort" ariaLabelDesc="Activate to sort in descending order" ariaLabelAsc="Activate to sort in ascending order"></p-sortIcon>
+        </th>
+<!--        <th pSortableColumn="name">-->
+<!--          Name-->
+<!--          <p-sortIcon field="name" ariaLabel="Activate to sort" ariaLabelDesc="Activate to sort in descending order" ariaLabelAsc="Activate to sort in ascending order"></p-sortIcon>-->
+<!--        </th>-->
+        <th pSortableColumn="amount">
+          Amount
+          <p-sortIcon field="amount" ariaLabel="Activate to sort" ariaLabelDesc="Activate to sort in descending order" ariaLabelAsc="Activate to sort in ascending order"></p-sortIcon>
+        </th>
+        <th pSortableColumn="buyPrice">
+          Price
+          <p-sortIcon field="buyPrice" ariaLabel="Activate to sort" ariaLabelDesc="Activate to sort in descending order" ariaLabelAsc="Activate to sort in ascending order"></p-sortIcon>
+        </th>
+        <th pSortableColumn="buyValue">
+          Value
+          <p-sortIcon field="buyValue" ariaLabel="Activate to sort" ariaLabelDesc="Activate to sort in descending order" ariaLabelAsc="Activate to sort in ascending order"></p-sortIcon>
+        </th>
+        <th pSortableColumn="latestPrice">
+          Price
+          <p-sortIcon field="latestPrice" ariaLabel="Activate to sort" ariaLabelDesc="Activate to sort in descending order" ariaLabelAsc="Activate to sort in ascending order"></p-sortIcon>
+        </th>
+        <th pSortableColumn="latestValue">
+          Value
+          <p-sortIcon field="latestValue" ariaLabel="Activate to sort" ariaLabelDesc="Activate to sort in descending order" ariaLabelAsc="Activate to sort in ascending order"></p-sortIcon>
+        </th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-row let-rowData>
+      <tr>
+        <td>{{row.symbol}}</td>
+<!--        <td><span>{{row.name}}</span></td>-->
+        <td class="amount">{{row.amount}}</td>
+        <td class="price">{{row.buyPrice | currency : row.currency}}</td>
+        <td class="price">{{row.buyValue | currency : row.currency}}</td>
+        <td class="price"><span>{{row.latestPrice | currency : row.currency}}</span></td>
+        <td class="price">{{row.latestValue | currency : row.currency}}</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</p-panel>

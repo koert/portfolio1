@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-
+import {StockService} from "../stock.service";
+import {HttpErrorResponse} from "@angular/common/http";
+import * as moment from "moment";
 
 export class PortfolioRow {
   rowIndex: number;
@@ -24,7 +26,7 @@ export class PortfolioComponent implements OnInit {
 
   portfolioRows: PortfolioRow[];
 
-  constructor() { }
+  constructor(private stockService: StockService) { }
 
   ngOnInit() {
     let row1 = new PortfolioRow();
@@ -52,4 +54,37 @@ export class PortfolioComponent implements OnInit {
     this.portfolioRows = [row1, row2];
   }
 
+  refreshPortfolioPrices(): void {
+    this.retrieveLatestPrice(this.portfolioRows, () => {});
+  }
+
+  /**
+   * Retrieve latest prices for stocks with keys.
+   * @param keys List of stock keys.
+   * @param stockMap Map with stocks, indexed with keys.
+   * @param onCompleted Callback when retrieval is complete.
+   */
+  private retrieveLatestPrice(rows: PortfolioRow[], onCompleted: () => void) {
+    if (rows.length > 0) {
+      let row: PortfolioRow = rows[0];
+      this.stockService.getStockLatestPrice(row.symbol).subscribe(response => {
+        let date = moment().startOf("day").toDate()
+        row.latestDate = date;
+        row.latestPrice = response.latestPrice;
+        row.latestValue = row.amount * row.latestPrice;
+        this.retrieveLatestPrice(rows.slice(1), onCompleted);
+      },
+        (error: HttpErrorResponse) => {
+          if (error.status === 404) {
+            this.retrieveLatestPrice(rows.slice(1), onCompleted);
+          } else {
+            onCompleted();
+          }
+        },
+        () => {}
+        );
+    } else {
+      onCompleted();
+    }
+  }
 }
