@@ -1,7 +1,8 @@
 = Portfolio1
 I am building an application to keep track of a stock portfolio. This has an Angular front-end with a REST services back-end implemented
 with Quarkus.
-The features of the first version:
+
+.The features of the first version:
 - list of stocks
 - retrieve latest prices from Yahoo Finance
 
@@ -10,9 +11,10 @@ image::src/docs/asciidoc/portfolio1.png[Architecture]
 
 == Project setup
 Let us start with an empty project by specifying the extensions on https://code.quarkus.io and download the resulting zip.
-The necessary extension:
-- RESTeasy JAX-R
-- RESTeasy JSON-B
+
+.The necessary extensions:
+* RESTeasy JAX-R
+* RESTeasy JSON-B
 
 To make sure the development environment works, you start the development mode with Maven:
 ----
