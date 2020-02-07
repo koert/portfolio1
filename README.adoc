@@ -165,7 +165,7 @@ directory. You can change that in the angular.json file:
       "outputPath": "../resources/META-INF/resources",
 ----
 
-After running `ng build --prod`, you can start Quarkus with `mvn compile quarkus:dev` and load the Angular app with http://localhost:8080
+After running `ng build --prod`, you can start Quarkus with `mvn compile quarkus:dev` and load the Angular app with http://localhost:8080/index.html
 
 == Running the application
 Now we have an application that we can deploy and run. Quarkus gives you the ability to run the application as a native executable.
@@ -175,5 +175,7 @@ runner executable that contains everything it needs. This executable starts up v
 After building the executable, you can build a Docker image and run it:
 ----
 docker build -f src/main/docker/Dockerfile.native -t quarkus/portfolio .
-docker run -i --rm -p 8080:8080 quarkus/portfolio
+docker run -i --rm -p 8080:80 quarkus/portfolio
 ----
+
+After that, you can access the application at http://localhost:8080/index.html
