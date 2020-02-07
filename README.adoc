@@ -2,7 +2,7 @@
 I am building an application to keep track of a stock portfolio. This has an Angular front-end with a REST services back-end implemented
 with Quarkus.
 The features of the first version:
-- manually add/remove stocks
+- list of stocks
 - retrieve latest prices from Yahoo Finance
 
 This is the architecture of the application:
