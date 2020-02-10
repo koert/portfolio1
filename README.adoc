@@ -154,7 +154,7 @@ After that, you can access the application at http://localhost:8080/index.html
 See the Github repository at: https://github.com/koert/portfolio1
 
 
-= Deployment on Amazon Web Services
+== Deployment on Amazon Web Services
 In my previous article I have setup an Angular application with a Quarkus backend and produced a Docker image. You can deploy this image
 directly with Docker, or run on a Kubernetes cluster. To evaluate how easy it is to deploy this image at AWS, I started looking at
 https://console.aws.amazon.com/ecs/home?region=us-east-1#/getStarted[Amazon Elastic Container Service (AWS ECS)].
@@ -173,7 +173,7 @@ aws iam --region eu-west-1 attach-role-policy --role-name ecsTaskExecutionRole -
 ecs-cli configure --cluster portfolio --default-launch-type FARGATE --config-name portfolio --region eu-west-1
 ----
 
-You have to setup an Administrator user in IAM and create an access key.
+You have to setup an Administrator user in IAM and create an access key. Easiest way is to use the IAM console.
 .Configure profile
 ----
 ecs-cli configure profile --access-key <ACCESS_KEY> --secret-key <SECRET_KEY> --profile-name portfolio-profile
@@ -240,10 +240,14 @@ ecs-cli compose --project-name portfolio service ps --cluster-config portfolio -
 #b0161234-bde5-44c1-1234-3d66caab1233/web  RUNNING  163.135.225.218:8080->8080/tcp  portfolio:3  UNKNOWN
 ----
 
+Now the application is running and you can access it at the listen IP address and port.
+
 .Examine the logs
 ----
 ecs-cli logs --task-id b0161234-bde5-44c1-1234-3d66caab1233 --follow --cluster-config portfolio --ecs-profile portfolio-profile
 ----
+
+It runs on just one container - you can scale it up with a simple command.
 
 .Scaling - use 2 containers
 ----
@@ -255,7 +259,27 @@ ecs-cli compose --project-name portfolio service scale 2 --cluster-config portfo
 ecs-cli compose --project-name portfolio service ps --cluster-config portfolio --ecs-profile portfolio-profile
 ----
 
-.Clean up
+You will now see 2 IP addresses and you can access both instances. Normally you would setup a load balancer that sends traffic to
+both instances. This is beyond the scope of this article.
+
+== Update new deployment
+
+Let's say that you made some improvements and want to deploy a new version. I could not find the option to do this with ecs-cli, but
+it is pretty straight forward with the "aws ecs update-service" command
+command.
+
+.Update image
+----
+aws ecs update-service --service portfolio --cluster portfolio --force-new-deployment
+----
+
+This will first deploy the new version, keep both version running for a short time and then removes the old instance.
+
+== Clean up
+
+The clean up your experimental deployment, you first stop the instance and then delete the cluster.
+
+.Stop the instance
 ----
 ecs-cli compose --project-name portfolio service down --cluster-config portfolio --ecs-profile portfolio-profile
 ----
@@ -276,9 +300,6 @@ ecs-cli compose --project-name portfolio service down --cluster-config portfolio
 ecs-cli down --force --cluster-config portfolio --ecs-profile portfolio-profile
 ----
 
-== Update new deployment
-
-.Update image
-----
-aws ecs update-service --service portfolio --cluster portfolio --force-new-deployment
-----
+== Conclusion
+I am not an AWS wizard, but I found it reasonably easy to setup a cluster and deploy the application. To make the application
+ready for real world use, there is much more to do, like user registration/login, load balancing, data persistance to a database, etc.
